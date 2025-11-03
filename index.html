@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Concordância e Adição em Inglês</title>
+    <!-- Carregamento do Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carregamento do Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f4;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .tab-button.active {
+            border-bottom-color: #0ea5e9; /* sky-500 */
+            color: #075985; /* sky-900 */
+        }
+    </style>
+</head>
+<body onload="initApp()">
+
+    <div class="w-full max-w-4xl mx-auto p-4 md:p-8 text-stone-800 min-h-screen bg-stone-100">
+
+        <header class="text-center mb-8">
+            <p class="text-xl font-extrabold text-sky-800 mb-2">Como Dizer "Também" em Inglês?</p>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-stone-900">A Concordância e Adição em Inglês</h1>
+            <p class="text-lg text-stone-600 mt-2">Guia interativo para usar *So do I*, *Also*, *As well as*, *Too* e *Either*.</p>
+        </header>
+
+        <nav class="flex justify-start overflow-x-auto border-b border-stone-300 mb-8 pb-1" id="tab-nav">
+            <!-- Botões das abas serão injetados ou definidos aqui -->
+            <button data-tab="learn" class="tab-button text-sm md:text-base font-bold py-2 md:py-4 px-2 md:px-4 border-b-4 transition-all duration-300 whitespace-nowrap active border-sky-500 text-sky-900">
+                Me too / So do I
+            </button>
+            <button data-tab="also" class="tab-button text-sm md:text-base font-bold py-2 md:py-4 px-2 md:px-4 border-b-4 transition-all duration-300 whitespace-nowrap border-transparent text-stone-500 hover:text-stone-700">
+                Also (Posicionamento)
+            </button>
+            <button data-tab="as-well-as" class="tab-button text-sm md:text-base font-bold py-2 md:py-4 px-2 md:px-4 border-b-4 transition-all duration-300 whitespace-nowrap border-transparent text-stone-500 hover:text-stone-700">
+                As Well As (Adição Formal)
+            </button>
+            <button data-tab="too-either" class="tab-button text-sm md:text-base font-bold py-2 md:py-4 px-2 md:px-4 border-b-4 transition-all duration-300 whitespace-nowrap border-transparent text-stone-500 hover:text-stone-700">
+                Too, As Well & Either
+            </button>
+            <button data-tab="practice" class="tab-button text-sm md:text-base font-bold py-2 md:py-4 px-2 md:px-4 border-b-4 transition-all duration-300 whitespace-nowrap border-transparent text-stone-500 hover:text-stone-700">
+                Pratique (Quiz)
+            </button>
+            <button data-tab="problem" class="tab-button text-sm md:text-base font-bold py-2 md:py-4 px-2 md:px-4 border-b-4 transition-all duration-300 whitespace-nowrap border-transparent text-stone-500 hover:text-stone-700">
+                Análise de Complexidade
+            </button>
+        </nav>
+
+        <main id="app-content">
+            <!-- Conteúdo dinâmico das abas será renderizado aqui -->
+        </main>
+
+    </div>
+
+    <script>
+        // === DADOS DO CENÁRIO ===
+        const scenarios = [
+            { statement: "Eu sou brasileiro.", original: "I am Brazilian.", type: 'positive', auxiliary: 'am', example: 'So am I.', informal: 'Me too.', englishSentence: 'I am Brazilian.' },
+            { statement: "Eu adoro feijoada.", original: "I love feijoada.", type: 'positive', auxiliary: 'do', example: 'So do I.', informal: 'Me too.', englishSentence: 'I love feijoada.' },
+            { statement: "Vou viajar no próximo mês.", original: "I will travel next month.", type: 'positive', auxiliary: 'will', example: 'So will I.', informal: 'Me too.', englishSentence: 'I will travel next month.' },
+            { statement: "Eu gosto de praia.", original: "I like the beach.", type: 'positive', auxiliary: 'do', example: 'So do I.', informal: 'Me too.', englishSentence: 'I like the beach.' },
+            { statement: "Eu consigo nadar.", original: "I can swim.", type: 'positive', auxiliary: 'can', example: 'So can I.', informal: 'Me too.', englishSentence: 'I can swim.' },
+            { statement: "Eu já visitei Portugal.", original: "I have visited Portugal.", type: 'positive', auxiliary: 'have', example: 'So have I.', informal: 'Me too.', englishSentence: 'I have visited Portugal.' },
+            
+            { statement: "Eu não estou com fome.", original: "I am not hungry.", type: 'negative', auxiliary: 'am', example: 'Neither am I.', informal: 'Me neither.', englishSentence: 'I am not hungry.' },
+            { statement: "Eu não bebo café.", original: "I don't drink coffee.", type: 'negative', auxiliary: 'do', example: 'Neither do I.', informal: 'Me neither.', englishSentence: 'I do not drink coffee.' },
+            { statement: "Eu não vi o filme.", original: "I haven't seen the movie.", type: 'negative', auxiliary: 'have', example: 'Neither have I.', informal: 'Me neither.', englishSentence: 'I have not seen the movie.' },
+            { statement: "Eu não entendi a lição.", original: "I didn't understand the lesson.", type: 'negative', auxiliary: 'did', example: 'Neither did I.', informal: 'Me neither.', englishSentence: 'I did not understand the lesson.' },
+            { statement: "Eu não gosto de frio.", original: "I don't like the cold.", type: 'negative', auxiliary: 'do', example: 'Neither do I.', informal: 'Me neither.', englishSentence: 'I do not like the cold.' },
+        ];
+        
+        const pronounChallenges = [
+            { id: 1, speaker: "John is a doctor.", type: 'positive', targetPronoun: 'she', auxiliary: 'is', correctResponse: 'So is she.', hint: "O auxiliar é 'is'." },
+            { id: 2, speaker: "They love pizza.", type: 'positive', targetPronoun: 'we', auxiliary: 'do', correctResponse: 'So do we.', hint: "O tempo é Presente Simples." },
+            { id: 3, speaker: "He has finished his homework.", type: 'positive', targetPronoun: 'I', auxiliary: 'have', correctResponse: 'So have I.', hint: "O auxiliar é 'have'." },
+            { id: 4, speaker: "The car can run fast.", type: 'positive', targetPronoun: 'it', auxiliary: 'can', correctResponse: 'So can it.', hint: "O auxiliar é 'can'." },
+            { id: 5, speaker: "I was tired last night.", type: 'positive', targetPronoun: 'he', auxiliary: 'was', correctResponse: 'So was he.', hint: "O tempo é Past Simple do verbo 'be'." },
+            { id: 6, speaker: "She is not hungry.", type: 'negative', targetPronoun: 'I', auxiliary: 'am', correctResponse: 'Neither am I.', hint: "O auxiliar é 'am' para 'I'." },
+            { id: 7, speaker: "We didn't understand the joke.", type: 'negative', targetPronoun: 'they', auxiliary: 'did', correctResponse: 'Neither did they.', hint: "O auxiliar é 'did'." },
+            { id: 8, speaker: "He won't travel next month.", type: 'negative', targetPronoun: 'she', auxiliary: 'will', correctResponse: 'Neither will she.', hint: "O auxiliar é 'will'." },
+            { id: 9, speaker: "I haven't been to Paris.", type: 'negative', targetPronoun: 'we', auxiliary: 'have', correctResponse: 'Neither have we.', hint: "O auxiliar é 'have'." },
+            { id: 10, speaker: "They don't smoke.", type: 'negative', targetPronoun: 'he', auxiliary: 'does', correctResponse: 'Neither does he.', hint: "O auxiliar para 'he' é 'does'." }, 
+        ];
+        const allAuxiliaries = ['DO', 'AM', 'WILL', 'CAN', 'HAVE', 'WAS', 'DID', 'DOES'];
+
+        // === ESTADO GLOBAL ===
+        let activeTab = 'learn';
+        let chartInstance = null;
+        let practiceState = {
+            currentScenarioIndex: 0,
+            feedback: null,
+            isDisabled: false
+        };
+        let builderState = {
+            currentPrompt: null,
+            chosenBlocks: [],
+            feedback: null,
+            isSolved: false,
+        };
+        let positiveChallengeState = {
+            currentChallenge: null,
+            userInput: '',
+            feedback: null,
+        };
+        let negativeChallengeState = {
+            currentChallenge: null,
+            userInput: '',
+            feedback: null,
+        };
+
+
+        // === UTILS E TEMPLATES ===
+
+        const ExampleBox = (english, portuguese, highlight, rule, color = 'text-purple-700', bg = 'bg-purple-100') => {
+            const parts = english.split(' ');
+            const highlightedEnglish = parts.map((word, index) => {
+                const shouldHighlight = highlight && word.toLowerCase().includes(highlight.toLowerCase());
+                return `
+                    <span class="${shouldHighlight ? `font-extrabold text-lg ${color} ${bg} px-1 rounded-sm` : 'font-semibold text-lg'}">
+                        ${word}
+                        ${index < parts.length - 1 ? ' ' : ''}
+                    </span>
+                `;
+            }).join('');
+
+            return `
+                <div class="p-3 border-l-4 border-stone-300 bg-white shadow-inner rounded-r-md mt-2">
+                    <p class="font-mono text-stone-800">${highlightedEnglish}</p>
+                    <p class="text-sm text-stone-500 italic mt-1">${portuguese}</p>
+                    ${rule ? `<p class="text-xs text-stone-400 mt-1">(${rule})</p>` : ''}
+                </div>
+            `;
+        };
+
+        const LegoBlock = (auxiliary, title, description, speakerSentence, formalResponse, informalResponse, type) => {
+            const isPositive = type === 'positive';
+            const fixedColor = isPositive ? 'bg-sky-300 text-sky-900' : 'bg-amber-300 text-amber-900';
+            const variableColor = 'bg-stone-300 text-stone-900';
+            const borderColor = isPositive ? 'border-sky-500' : 'border-amber-500';
+            const bgColor = isPositive ? 'bg-sky-50' : 'bg-amber-50';
+            const textColor = isPositive ? 'text-sky-800' : 'text-amber-800';
+            const startWord = isPositive ? 'SO' : 'NEITHER';
+            
+            return `
+                <div class="p-4 ${bgColor} border-l-4 ${borderColor} rounded-r-lg space-y-3 shadow-md">
+                    <h3 class="font-bold ${textColor} text-xl">${title}</h3>
+                    <p class="text-stone-500 mb-3">${description}</p>
+                    
+                    <div class="text-center">
+                        <p class="text-sm text-stone-500 mb-1 font-medium">Fórmula Formal: **${startWord}** + [AUXILIAR] + **I**</p>
+                        <div class="flex items-center justify-center space-x-2 text-2xl font-extrabold p-3 bg-white rounded-lg shadow-inner border border-sky-200">
+                            <span class="px-3 py-1 rounded-md ${fixedColor}">${startWord}</span>
+                            <span class="px-3 py-1 rounded-md ${variableColor} min-w-[50px]">${auxiliary.toUpperCase()}</span>
+                            <span class="px-3 py-1 rounded-md ${fixedColor}">I</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <p class="font-mono text-lg"><span class="text-stone-500">Speaker:</span> "${speakerSentence}"</p>
+                        <p class="font-mono text-lg font-bold ${textColor}">
+                            <span class="text-stone-500 font-normal">Formal:</span> "${formalResponse}"
+                        </p>
+                            <p class="font-mono text-lg font-bold ${textColor}">
+                            <span class="text-stone-500 font-normal">Informal:</span> "${informalResponse}"
+                        </p>
+                    </div>
+                </div>
+            `;
+        };
+        
+        // === FUNÇÕES DE RENDERIZAÇÃO DE GUIAS ===
+
+        const renderLearnTab = () => {
+            const contentDiv = document.getElementById('app-content');
+            
+            // Re-render SentenceBuilder and PronounChallenges state when loading the tab
+            initBuilderState();
+            initChallengeState('positive');
+            initChallengeState('negative');
+
+            contentDiv.innerHTML = `
+                <section id="content-learn" class="space-y-10">
+                    <p class="text-xl text-stone-700 p-4 bg-white rounded-lg shadow-sm border border-stone-200">
+                        A forma mais comum de concordância em Inglês é usar a estrutura **[SO / NEITHER / NOR] + AUXILIAR + PRONOME**. No entanto, a forma mais **simples e informal** é sempre uma opção.
+                    </p>
+                    
+                    <h2 class="text-3xl font-extrabold text-sky-700 mb-6 border-b pb-2">1. Concordância Positiva: "Me too" vs. "So do I"</h2>
+                    <div class="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-lg shadow-md mb-6">
+                        <h3 class="font-bold text-xl text-yellow-800 mb-1">A Diferença Crucial</h3>
+                        <p class="text-stone-700">O **brasileiro** tende a usar a resposta **informal** (\`Me too\`), que é perfeitamente aceitável, mas a resposta **formal** exige o conhecimento do auxiliar e a inversão verbal.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="p-6 bg-white rounded-lg shadow-lg border border-sky-200 h-full space-y-4">
+                            <h3 class="text-2xl font-bold text-sky-700 mb-3">Opção Formal (Inversão)</h3>
+                            <p class="text-lg mb-4">A forma formal utiliza a estrutura **SO + Auxiliar + I**. **O pronome deve ser o Sujeito (I)**.</p>
+                            
+                            ${LegoBlock(
+                                "DO",
+                                "Bloco DO (Presente Simples)",
+                                "Para frases no Presente Simples sem auxiliar visível, use o auxiliar implícito **DO**.",
+                                "I love pão de queijo.",
+                                "So do I.",
+                                "Me too.",
+                                "positive"
+                            )}
+                            
+                            ${LegoBlock(
+                                "AM", 
+                                "Bloco AM/IS/ARE (Verbo BE)",
+                                "Se o auxiliar for o Verbo BE, repita-o e conjugue para 'I' (**am**).",
+                                "I am ready.",
+                                "So am I.",
+                                "Me too.",
+                                "positive"
+                            )}
+                        </div>
+
+                        <div class="p-6 bg-white rounded-lg shadow-lg border border-amber-200 h-full space-y-4">
+                            <h3 class="text-2xl font-bold text-amber-700 mb-3">Concordância Negativa: "Me neither" vs. "Neither do I"</h3>
+                            <p class="text-lg mb-4">Você tem duas opções para o **"Eu também não"**:</p>
+
+                            ${LegoBlock(
+                                "HAVE", 
+                                "Formal: NEITHER/NOR + Auxiliar",
+                                "A forma formal utiliza a estrutura **NEITHER** (ou NOR) + Auxiliar + I. Copie o auxiliar da negação, mas use NEITHER para negar.",
+                                "I haven't seen that movie.",
+                                "Neither have I.",
+                                "Me neither.",
+                                "negative"
+                            )}
+                            
+                            <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg shadow-md mb-4">
+                                <h3 class="font-bold text-amber-800 text-xl mb-1">Informal: Me neither</h3>
+                                <p class="font-mono text-lg"><span class="text-stone-500">Speaker:</span> "I <strong class="text-red-600">don't</strong> like the cold."</p>
+                                <p class="font-mono text-lg font-bold"><span class="text-amber-800">You:</span> "Me neither." (O mais seguro, informal e comum)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="text-3xl font-extrabold text-sky-700 mb-6 mt-10 border-b pb-2">2. Desafios Interativos (Montagem e Conjugação)</h2>
+
+                    <!-- Sentence Builder Container -->
+                    <div id="sentence-builder-container"></div>
+                    
+                    <hr class="border-t-2 border-sky-200 mt-8 mb-8" />
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Positive Challenge Container -->
+                        <div id="positive-challenge-container"></div>
+                        
+                        <!-- Negative Challenge Container -->
+                        <div id="negative-challenge-container"></div>
+                    </div>
+                </section>
+            `;
+
+            // Render interactive components and attach listeners
+            renderSentenceBuilder();
+            renderPronounChallenge('positive');
+            renderPronounChallenge('negative');
+        };
+
+        const renderAlsoTab = () => {
+            document.getElementById('app-content').innerHTML = `
+                <section id="content-also" class="p-6 bg-white rounded-lg shadow-xl space-y-6">
+                    <h2 class="text-3xl font-bold text-teal-700 border-b pb-2">ALSO: Onde Colocar o "Também"?</h2>
+                    <p class="text-xl text-stone-700 border-l-4 border-teal-400 pl-4 py-2 bg-teal-50 rounded-r-lg">
+                        **"Also"** é usado para adicionar uma informação ou ideia (significando **"além disso"** ou **"e também"**). O erro mais comum dos brasileiros é o **posicionamento** na frase. **Ele NUNCA deve ir no final da frase**!
+                    </p>
+
+                    <!-- Posição 1: Início (Formal/Para iniciar uma nova ideia) -->
+                    <div class="p-4 bg-teal-50 rounded-lg shadow-sm border border-teal-200">
+                        <h3 class="font-bold text-xl text-teal-800 mb-2">1. Início da Frase (Para Introduzir)</h3>
+                        <p class="text-stone-600 mb-3">Usado para introduzir um novo ponto ou tópico. É mais formal.</p>
+                        ${ExampleBox(
+                            "Also, I need to buy milk.",
+                            "Além disso, eu preciso comprar leite.",
+                            "Also",
+                            null,
+                            "text-teal-700",
+                            "bg-teal-200"
+                        )}
+                    </div>
+
+                    <!-- Posição 2: Meio (A Mais Comum e Mais Segura) -->
+                    <div class="p-4 bg-teal-100 rounded-lg shadow-sm border border-teal-300">
+                        <h3 class="font-bold text-xl text-teal-800 mb-2">2. Posição Média (A Mais Comum)</h3>
+                        <p class="text-stone-600 mb-3">Vem antes do verbo principal, mas depois do verbo auxiliar (se houver).</p>
+                        ${ExampleBox(
+                            "She is also coming to the party.",
+                            "Ela também está vindo para a festa.",
+                            "also",
+                            "Depois do auxiliar 'is'.",
+                            "text-teal-700",
+                            "bg-teal-200"
+                        )}
+                        ${ExampleBox(
+                            "I also drink coffee.",
+                            "Eu também bebo café.",
+                            "also",
+                            "Antes do verbo principal 'drink'.",
+                            "text-teal-700",
+                            "bg-teal-200"
+                        )}
+                    </div>
+
+                    <!-- Posição 3: Erro Comum (Final da Frase - ERRADO) -->
+                    <div class="p-4 bg-red-100 rounded-lg shadow-md border-l-4 border-red-500">
+                        <h3 class="font-bold text-xl text-red-700 mb-2">⚠️ O ERRO MAIS COMUM</h3>
+                        <p class="text-stone-700 font-semibold mb-3">NUNCA use 'Also' no final da frase. Use **'too'** ou **'as well'** (na próxima aba!).</p>
+                        <p class="font-mono text-lg text-red-600">❌ I drink coffee <span class="font-bold bg-red-200 px-1 rounded-sm">also</span>.</p>
+                    </div>
+                </section>
+            `;
+        };
+
+        const renderAsWellAsTab = () => {
+            document.getElementById('app-content').innerHTML = `
+                <section id="content-aswellas" class="p-6 bg-white rounded-lg shadow-xl space-y-6">
+                    <h2 class="text-3xl font-bold text-purple-700 border-b pb-2">AS WELL AS: "Não Apenas Isso" (Adição Formal)</h2>
+                    <p class="text-xl text-stone-700 border-l-4 border-purple-400 pl-4 py-2 bg-purple-50 rounded-r-lg">
+                        **"As well as"** não é usado para concordar ("Eu também"). Ele funciona como uma **preposição** com o sentido de **"além de"** ou **"e também"**, ligando duas ideias, objetos ou ações. É mais formal do que usar apenas 'and'.
+                    </p>
+
+                    <!-- Uso 1: Conectando Nouns/Objetos -->
+                    <div class="p-4 bg-purple-50 rounded-lg shadow-sm border border-purple-200">
+                        <h3 class="font-bold text-xl text-purple-800 mb-2">1. Conectando Substantivos (Nouns)</h3>
+                        <p class="text-stone-600 mb-3">Simplesmente conecta elementos de mesma categoria.</p>
+                        ${ExampleBox(
+                            "I love feijoada as well as acarajé.",
+                            "Eu amo feijoada, além de acarajé.",
+                            "as well as",
+                            null,
+                            "text-purple-700",
+                            "bg-purple-200"
+                        )}
+                    </div>
+
+                    <!-- Uso 2: Com Verbos (-ing form) -->
+                    <div class="p-4 bg-purple-100 rounded-lg shadow-sm border border-purple-300">
+                        <h3 class="font-bold text-xl text-purple-800 mb-2">2. Antes de Verbos (Forma -ing)</h3>
+                        <p class="text-stone-600 mb-3">Quando "as well as" é seguido por um verbo, esse verbo deve estar no **Gerúndio (-ing)**, pois "as well as" funciona como uma preposição. Pense em "além de [verbo no infinitivo]".</p>
+                        ${ExampleBox(
+                            "She studies English as well as working full-time.",
+                            "Ela estuda Inglês, além de trabalhar em tempo integral.",
+                            "as well as working",
+                            null,
+                            "text-purple-700",
+                            "bg-purple-200"
+                        )}
+                    </div>
+
+                    <!-- DICA DE GRAMÁTICA (Acordo Verbal) -->
+                    <div class="p-4 bg-yellow-100 rounded-lg shadow-md border-l-4 border-yellow-500">
+                        <h3 class="font-bold text-xl text-yellow-700 mb-2">💡 Dica de Gramática (Acordo Verbal - Sujeito)</h3>
+                        <p class="text-stone-700">Quando "as well as" liga dois sujeitos, o verbo concorda com o **PRIMEIRO** sujeito, ignorando o resto da frase:</p>
+                        <p class="font-mono text-lg text-stone-900 mt-2">
+                            <span class="font-bold text-blue-600">John</span>, as well as his friends, <span class="font-bold text-blue-600">is</span> going. 
+                            <span class="text-sm block mt-1">(O verbo 'is' concorda com 'John', não com 'friends'.)</span>
+                        </p>
+                    </div>
+                </section>
+            `;
+        };
+
+        const renderTooAndEitherTab = () => {
+            document.getElementById('app-content').innerHTML = `
+                <section id="content-too-either" class="p-6 bg-white rounded-lg shadow-xl space-y-6">
+                    <h2 class="text-3xl font-bold text-red-700 border-b pb-2">TOO, AS WELL & EITHER: A Posição Final</h2>
+                    <p class="text-xl text-stone-700 border-l-4 border-red-400 pl-4 py-2 bg-red-50 rounded-r-lg">
+                        Estas três palavras são vitais porque ocupam a **posição final** na frase, que é a posição que o falante de Português mais tende a usar (dizendo \`... também\` ou \`... também não\`).
+                    </p>
+
+                    <!-- TOO & AS WELL (Positivo) -->
+                    <div class="p-4 bg-red-50 rounded-lg shadow-sm border border-red-200">
+                        <h3 class="font-bold text-2xl text-red-800 mb-3">1. TOO & AS WELL (Concordância Positiva)</h3>
+                        <p class="text-lg text-stone-600 mb-3">Ambos significam "também" e vão no final de frases afirmativas. **\`As well\` é um pouco mais formal que \`too\`.**</p>
+                        
+                        ${ExampleBox(
+                            "I like pizza too.",
+                            "Eu gosto de pizza também.",
+                            "too",
+                            null,
+                            "text-red-700",
+                            "bg-red-200"
+                        )}
+                        ${ExampleBox(
+                            "They are coming as well.",
+                            "Eles estão vindo também.",
+                            "as well",
+                            "Mais formal que 'too'.",
+                            "text-red-700",
+                            "bg-red-200"
+                        )}
+                        <p class="text-xs text-red-500 mt-3 font-semibold">
+                            Lembre-se: **\`Also\`** (meio/início) &rarr; **\`Too\`/\`As well\`** (fim).
+                        </p>
+                    </div>
+
+                    <!-- EITHER (Negativo) -->
+                    <div class="p-4 bg-neutral-100 rounded-lg shadow-sm border border-neutral-300">
+                        <h3 class="font-bold text-2xl text-stone-800 mb-3">2. EITHER (Concordância Negativa)</h3>
+                        <p class="text-lg text-stone-600 mb-3">Esta é a forma mais comum de dizer **"também não"** quando você mantém o verbo auxiliar negativo (ex: don't, haven't, can't).</p>
+
+                        ${ExampleBox(
+                            "I don't like the cold, and she doesn't like it either.",
+                            "Eu não gosto do frio, e ela também não gosta.",
+                            "either",
+                            "A frase já é negativa (doesn't), então usamos EITHER.",
+                            "text-stone-700",
+                            "bg-stone-300"
+                        )}
+                        ${ExampleBox(
+                            "He can't come to the meeting either.",
+                            "Ele também não pode vir para a reunião.",
+                            "either",
+                            "A frase já é negativa (can't), então usamos EITHER.",
+                            "text-stone-700",
+                            "bg-stone-300"
+                        )}
+                        <p class="text-xs text-red-500 mt-3 font-semibold">
+                            **EITHER vs. NEITHER/NOR:** <br/> * I don't like it **either**. (Frase negativa + EITHER)
+                            <br/> * **Neither** do I. (NEITHER + Auxiliar + I, pois NEITHER já nega)
+                        </p>
+                    </div>
+                </section>
+            `;
+        };
+
+        const renderPracticeTab = () => {
+            const contentDiv = document.getElementById('app-content');
+            
+            if (activeTab !== 'practice') return; // Only render if active
+
+            const currentScenario = scenarios[practiceState.currentScenarioIndex];
+            const feedback = practiceState.feedback;
+            const isDisabled = practiceState.isDisabled;
+
+            let feedbackHTML = '';
+            if (feedback) {
+                feedbackHTML = `
+                    <div class="p-4 border-l-4 rounded-r-lg ${feedback.isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}">
+                        <h3 class="text-xl font-bold text-stone-900">${feedback.isCorrect ? 'Correto!' : 'Incorreto.'}</h3>
+                        <p class="text-lg ${feedback.isCorrect ? 'text-green-700' : 'text-red-700'}">${feedback.message}</p>
+                    </div>
+                `;
+            }
+
+            contentDiv.innerHTML = `
+                <section id="content-practice">
+                    <div class="p-6 md:p-8 bg-white rounded-lg shadow-lg border border-stone-200">
+                        <h2 class="text-2xl font-bold text-center mb-1">Pratique sua Resposta em Inglês (Quiz Rápido)</h2>
+                        <p class="text-lg text-stone-600 text-center mb-6">Alguém diz algo sobre si mesmo. Você concorda. Classifique a concordância correta.</p>
+                        
+                        <div class="p-6 bg-stone-100 rounded-lg min-h-[100px] flex items-center justify-center text-center shadow-inner">
+                            <p id="scenario-statement" class="font-mono text-2xl md:text-3xl font-semibold text-stone-800">
+                                "${currentScenario ? currentScenario.statement : 'Carregando...'}"
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                            <button 
+                                id="check-positive"
+                                ${isDisabled ? 'disabled' : ''}
+                                class="text-lg font-bold p-6 bg-sky-500 text-white rounded-lg shadow-md transition duration-200 transform ${!isDisabled && 'hover:bg-sky-600 hover:scale-105'}"
+                            >
+                                Concordância Positiva (Me too / So do I)
+                            </button>
+                            <button 
+                                id="check-negative"
+                                ${isDisabled ? 'disabled' : ''}
+                                class="text-lg font-bold p-6 bg-amber-500 text-white rounded-lg shadow-md transition duration-200 transform ${!isDisabled && 'hover:bg-amber-600 hover:scale-105'}"
+                            >
+                                Concordância Negativa (Me neither / Nor do I)
+                            </button>
+                        </div>
+
+                        <div class="mt-6 min-h-[100px]">
+                            ${feedbackHTML}
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button 
+                                id="load-next-scenario"
+                                class="py-2 px-6 bg-stone-700 text-white font-semibold rounded-lg hover:bg-stone-800 transition"
+                            >
+                                Próximo Cenário &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            `;
+
+            // Attach event listeners
+            document.getElementById('check-positive').addEventListener('click', () => checkAnswer('positive'));
+            document.getElementById('check-negative').addEventListener('click', () => checkAnswer('negative'));
+            document.getElementById('load-next-scenario').addEventListener('click', loadScenario);
+        };
+
+        const loadScenario = () => {
+            const randomIndex = Math.floor(Math.random() * scenarios.length);
+            practiceState.currentScenarioIndex = randomIndex;
+            practiceState.feedback = null;
+            practiceState.isDisabled = false;
+            renderPracticeTab(); // Re-render the practice tab
+        };
+
+        const checkAnswer = (chosenType) => {
+            if (practiceState.isDisabled) return;
+
+            practiceState.isDisabled = true;
+            const scenario = scenarios[practiceState.currentScenarioIndex];
+            const correctType = scenario.type;
+
+            if (chosenType === correctType) {
+                const formalAnswer = scenario.example;
+                const informalAnswer = scenario.type === 'positive' ? `Me too` : `Me neither`;
+
+                practiceState.feedback = {
+                    isCorrect: true,
+                    message: `Correto! Opção informal: **${informalAnswer}**. Opção formal: **${formalAnswer}**.`
+                };
+            } else {
+                const explanation = `A resposta correta era **${correctType === 'positive' ? 'positiva' : 'negativa'}**. A frase em Português é **${scenario.type === 'positive' ? 'positiva' : 'negativa'}**, então você deveria usar a concordância **${scenario.type === 'positive' ? 'positiva' : 'negativa'}** em Inglês.`;
+                practiceState.feedback = {
+                    isCorrect: false,
+                    message: explanation
+                };
+            }
+            renderPracticeTab(); // Re-render the practice tab
+        };
+
+        const renderProblemTab = () => {
+            document.getElementById('app-content').innerHTML = `
+                <section id="content-problem">
+                    <div class="p-6 bg-white rounded-lg shadow-sm border border-stone-200">
+                        <h2 class="text-2xl font-bold text-stone-800 mb-3">Por Que o Inglês é Mais Complicado (O Desafio do Brazuca)</h2>
+                        <p class="text-lg mb-6 text-stone-700">Enquanto em Português usamos apenas duas frases fixas para concordar (<strong class="text-sky-700">Eu também</strong> e <strong class="text-amber-700">Eu também não</strong>), o Inglês exige que você identifique o verbo auxiliar e mude a estrutura da frase. Por isso, a regra de concordância em Inglês possui muito mais variações.</p>
+                        
+                        <p class="text-base text-stone-600 text-center font-semibold mb-2">Comparação de Complexidade (Regras de Concordância)</p>
+                        <div class="chart-container">
+                            <canvas id="complexityChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div class="p-4 bg-white rounded-lg shadow-sm border border-stone-200">
+                            <h3 class="text-xl font-bold text-stone-700 mb-3">Lógica de Concordância em Inglês</h3>
+                            <ol class="list-decimal list-inside space-y-2 text-stone-600">
+                                <li>A afirmação é positiva ou negativa?</li>
+                                <li>Qual é o verbo auxiliar (do, be, have, will, can...)?</li>
+                                <li>Escolher: "Me too" OU "So [auxiliar] I" OU "Neither [auxiliar] I".</li>
+                                <li>Múltiplas variações dependendo do auxiliar.</li>
+                            </ol>
+                        </div>
+                        <div class="p-4 bg-white rounded-lg shadow-sm border border-stone-200">
+                            <h3 class="text-xl font-bold text-stone-700 mb-3">Lógica de Concordância em Português</h3>
+                            <ol class="list-decimal list-inside space-y-2 text-stone-600">
+                                <li>A afirmação é positiva ou negativa?</li>
+                                <li>Se positiva: <strong class="text-sky-700">"Eu também."</strong></li>
+                                <li>Se negativa: <strong class="text-amber-700">"Eu também não."</strong></li>
+                                <li>Apenas duas opções estáticas.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+            `;
+
+            // Chart.js initialization
+            const ctx = document.getElementById('complexityChart');
+            if (ctx) {
+                // Destroy previous instance if it exists
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Concordância em Português', 'Concordância em Inglês'],
+                        datasets: [{
+                            label: 'Número de Regras/Variações Principais',
+                            data: [2, 4], 
+                            backgroundColor: [
+                                'rgba(2, 132, 199, 0.7)', 
+                                'rgba(59, 130, 246, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgb(2, 132, 199)',
+                                'rgb(59, 130, 246)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = 'Regras Principais: ';
+                                        label += context.raw;
+                                        if (context.label === 'Concordância em Inglês') {
+                                            label += ' (Ex: So do I, So am I, So have I, Me neither)';
+                                        } else {
+                                            label += ' (Ex: Eu também, Eu também não)';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: { display: false },
+                                ticks: { stepSize: 1 }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { font: { size: 14, weight: '600' } }
+                            }
+                        }
+                    }
+                });
+            }
+        };
+
+        // === SENTENCE BUILDER LOGIC (LEGO) ===
+        const initBuilderState = () => {
+            const positiveScenarios = scenarios.filter(s => s.type === 'positive');
+            const randomIndex = Math.floor(Math.random() * positiveScenarios.length);
+            const newPrompt = positiveScenarios[randomIndex];
+            
+            const distractionAuxiliaries = allAuxiliaries
+                .filter(aux => aux !== newPrompt.auxiliary.toUpperCase() && aux !== 'DOES') 
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3); 
+            
+            const availableAuxiliaries = [newPrompt.auxiliary.toUpperCase(), ...distractionAuxiliaries]
+                .sort(() => 0.5 - Math.random()); 
+
+            builderState = {
+                currentPrompt: {...newPrompt, availableAuxiliaries},
+                chosenBlocks: [],
+                feedback: null,
+                isSolved: false,
+            };
+        };
+
+        const getPoolBlockStyle = (aux) => {
+            const isFixed = aux === 'SO' || aux === 'I';
+            const { chosenBlocks, currentPrompt, isSolved } = builderState;
+            
+            let baseStyle = 'py-3 px-5 rounded-lg font-extrabold text-xl shadow-md transition-all duration-300 transform';
+            
+            if (isSolved) return `${baseStyle} bg-stone-300 text-stone-600 cursor-not-allowed`;
+
+            if (isFixed && chosenBlocks.length === 0 && aux === 'SO') {
+                return `${baseStyle} cursor-pointer hover:scale-105 hover:shadow-lg bg-sky-500 text-white`;
+            }
+            if (isFixed && chosenBlocks.length === 2 && aux === 'I' && chosenBlocks[1] === currentPrompt.auxiliary.toUpperCase()) {
+                 return `${baseStyle} cursor-pointer hover:scale-105 hover:shadow-lg bg-sky-500 text-white`;
+            }
+            
+            if (chosenBlocks.length === 1 && allAuxiliaries.includes(aux)) {
+                return `${baseStyle} cursor-pointer hover:scale-105 hover:shadow-lg bg-amber-400 text-stone-900`;
+            }
+            return `${baseStyle} bg-stone-300 text-stone-600 cursor-not-allowed`;
+        }
+
+        const getAssemblySlotStyle = (index) => {
+            const block = builderState.chosenBlocks[index];
+            const isActiveStep = builderState.chosenBlocks.length === index;
+            const { isSolved } = builderState;
+            
+            let base = 'min-w-[80px] h-12 flex items-center justify-center rounded-lg shadow-inner border-2 font-extrabold text-xl transition-all duration-300';
+            
+            if (block) {
+                return `${base} ${block === 'SO' || block === 'I' ? 'bg-sky-500 text-white' : 'bg-amber-400 text-stone-900'} scale-100`;
+            } else if (isActiveStep && !isSolved) {
+                return `${base} border-dashed border-sky-400 bg-sky-50 text-sky-500 animate-pulse`;
+            } else {
+                return `${base} bg-stone-100 border-stone-300 text-stone-400`;
+            }
+        }
+
+        const handleBlockClick = (block) => {
+            if (builderState.isSolved) return;
+
+            const newBlocks = [...builderState.chosenBlocks, block];
+            const step = newBlocks.length;
+            const correctAux = builderState.currentPrompt.auxiliary.toUpperCase();
+
+            let newFeedback = builderState.feedback;
+            let newIsSolved = builderState.isSolved;
+            let finalBlocks = newBlocks;
+
+            if (step === 1 && block === 'SO') {
+                newFeedback = { message: "Ótimo! SO é o início fixo da concordância positiva.", type: 'success' };
+            } else if (step === 2 && allAuxiliaries.includes(block)) {
+                if (block === correctAux) {
+                    newFeedback = { message: `EXCELENTE! O auxiliar correto é '${correctAux}'.`, type: 'success' };
+                } else {
+                    newFeedback = { message: `Quase! O bloco central precisa ser o auxiliar correto: ${correctAux}. Tente novamente.`, type: 'error' };
+                    finalBlocks = []; // Reset on error
+                }
+            } else if (step === 3 && block === 'I' && newBlocks[1] === correctAux) {
+                newFeedback = { message: `🎉 Parabéns! Você montou a frase: ${builderState.currentPrompt.example}`, type: 'complete' };
+                newIsSolved = true;
+            } else {
+                newFeedback = { message: "Ordem incorreta ou bloco errado. Recomece: SO + AUXILIAR + I.", type: 'error' };
+                finalBlocks = [];
+            }
+            
+            builderState.chosenBlocks = finalBlocks;
+            builderState.feedback = newFeedback;
+            builderState.isSolved = newIsSolved;
+            renderSentenceBuilder(); // Re-render
+        };
+
+        const renderSentenceBuilder = () => {
+            const container = document.getElementById('sentence-builder-container');
+            if (!container) return; // Only render if container exists
+
+            const { currentPrompt, chosenBlocks, feedback, isSolved } = builderState;
+
+            let feedbackHTML = '';
+            if (feedback) {
+                feedbackHTML = `
+                    <div class="p-3 rounded-lg font-semibold transition-all duration-300 ${
+                        feedback.type === 'success' ? 'bg-green-100 text-green-800 border-l-4 border-green-500' : 
+                        feedback.type === 'error' ? 'bg-red-100 text-red-800 border-l-4 border-red-500' :
+                        feedback.type === 'complete' ? 'bg-sky-100 text-sky-800 border-l-4 border-sky-500 text-xl' : 'bg-stone-100 text-stone-700'
+                    }">
+                        ${feedback.message}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="space-y-6 p-6 bg-white rounded-lg shadow-xl border border-sky-100">
+                    
+                    <h2 class="text-2xl font-bold text-sky-700 mb-4">🛠️ Lego Sentence Builder (Concordância 'I')</h2>
+                    <p class="text-lg text-stone-600">Sua missão: Montar a resposta de concordância correta clicando nos blocos na ordem **SO, [AUXILIAR], I**.</p>
+
+                    <!-- Prompt -->
+                    <div class="p-5 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                        <p class="text-lg font-semibold text-stone-700">Frase dita a você (Português):</p>
+                        <p class="font-mono text-2xl font-bold text-blue-900 mt-1">"${currentPrompt?.statement}"</p>
+                    </div>
+
+                    <!-- Área de Montagem -->
+                    <div class="border-2 border-stone-200 p-6 rounded-xl bg-stone-50 transition duration-300">
+                        <p class="text-center text-sm font-medium text-stone-500 mb-4">Área de Montagem: Clique na ordem correta!</p>
+                        <div class="flex justify-center items-center space-x-2 md:space-x-4" id="assembly-area">
+                            
+                            <!-- Slot 1: SO -->
+                            <div id="slot-0" class="${getAssemblySlotStyle(0)}">
+                                ${chosenBlocks[0] || 'SO'}
+                            </div>
+
+                            <!-- Slot 2: AUXILIAR -->
+                            <div id="slot-1" class="${getAssemblySlotStyle(1)}">
+                                ${chosenBlocks[1] || 'AUXILIAR?'}
+                            </div>
+
+                            <!-- Slot 3: I -->
+                            <div id="slot-2" class="${getAssemblySlotStyle(2)}">
+                                ${chosenBlocks[2] || 'I'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pool de Blocos -->
+                    <div class="pt-4">
+                        <p class="text-center text-sm font-medium text-stone-500 mb-3">Clique para selecionar o BLOCO AUXILIAR (passo 2):</p>
+                        <div class="flex flex-wrap justify-center gap-2" id="auxiliary-pool">
+                            ${currentPrompt?.availableAuxiliaries.map(aux => `
+                                <button 
+                                    data-block="${aux}"
+                                    class="${getPoolBlockStyle(aux)}"
+                                    ${chosenBlocks.length !== 1 || isSolved ? 'disabled' : ''}
+                                >
+                                    ${aux}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Feedback -->
+                    <div class="min-h-[60px]">
+                        ${feedbackHTML}
+                    </div>
+
+                    ${isSolved ? `
+                        <div class="text-center">
+                            <button id="new-prompt-builder" class="py-3 px-8 bg-sky-700 text-white font-bold rounded-full shadow-lg hover:bg-sky-800 transition transform hover:scale-105">
+                                Tentar Nova Frase!
+                            </button>
+                        </div>
+                    ` : ''}
+
+                </div>
+            `;
+            
+            // Attach event listeners for the builder
+            document.getElementById('slot-0')?.addEventListener('click', () => {
+                if (chosenBlocks.length === 0) handleBlockClick('SO');
+            });
+            document.getElementById('slot-2')?.addEventListener('click', () => {
+                if (chosenBlocks.length === 2 && chosenBlocks[1] === currentPrompt.auxiliary.toUpperCase()) handleBlockClick('I');
+            });
+            
+            document.querySelectorAll('#auxiliary-pool button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const block = e.target.getAttribute('data-block');
+                    if (chosenBlocks.length === 1) handleBlockClick(block);
+                });
+            });
+
+            document.getElementById('new-prompt-builder')?.addEventListener('click', () => {
+                initBuilderState();
+                renderSentenceBuilder();
+            });
+        };
+
+        // === PRONOUN CHALLENGE LOGIC ===
+        const initChallengeState = (type) => {
+            const state = type === 'positive' ? positiveChallengeState : negativeChallengeState;
+            const filteredChallenges = pronounChallenges.filter(c => c.type === type);
+            const randomIndex = Math.floor(Math.random() * filteredChallenges.length);
+            
+            if (filteredChallenges.length === 0) return;
+
+            // Update state object directly
+            if (type === 'positive') {
+                positiveChallengeState = {
+                    currentChallenge: filteredChallenges[randomIndex],
+                    userInput: '',
+                    feedback: null,
+                };
+            } else {
+                negativeChallengeState = {
+                    currentChallenge: filteredChallenges[randomIndex],
+                    userInput: '',
+                    feedback: null,
+                };
+            }
+        };
+
+        const handleChallengeCheck = (type) => {
+            const state = type === 'positive' ? positiveChallengeState : negativeChallengeState;
+            const currentChallenge = state.currentChallenge;
+
+            if (!state.userInput) {
+                state.feedback = { isCorrect: false, message: "Por favor, digite sua resposta!" };
+                renderPronounChallenge(type);
+                return;
+            }
+
+            const cleanedInput = state.userInput.trim().replace(/[.,!?'"]/g, '').toLowerCase();
+            const cleanedCorrect = currentChallenge.correctResponse.toLowerCase().replace(/[.,!?'"]/g, '');
+
+            if (cleanedInput === cleanedCorrect) {
+                state.feedback = { 
+                    isCorrect: true, 
+                    message: `✅ Correto! "${currentChallenge.correctResponse}" é a resposta perfeita!` 
+                };
+            } else {
+                state.feedback = { 
+                    isCorrect: false, 
+                    message: `❌ Incorreto. A resposta correta é: **${currentChallenge.correctResponse}**. Dica: ${currentChallenge.hint}` 
+                };
+            }
+            renderPronounChallenge(type);
+        };
+
+        const renderPronounChallenge = (type) => {
+            const containerId = type === 'positive' ? 'positive-challenge-container' : 'negative-challenge-container';
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const state = type === 'positive' ? positiveChallengeState : negativeChallengeState;
+            const currentChallenge = state.currentChallenge;
+
+            if (!currentChallenge) {
+                container.innerHTML = `<div class="text-center p-4">Carregando Desafios...</div>`;
+                return;
+            }
+
+            const colorScheme = type === 'positive' ? 
+                { main: 'bg-sky-50 border-sky-300', text: 'text-sky-700', button: 'bg-sky-500 hover:bg-sky-600' } :
+                { main: 'bg-amber-50 border-amber-300', text: 'text-amber-700', button: 'bg-amber-500 hover:bg-amber-600' };
+            
+            const title = type === 'positive' ? "🎯 Desafio 1: Conjugação (Positivo)" : "🎯 Desafio 2: Conjugação (Negativo)";
+            const subtitle = "Monte a concordância formal correta (So.../Neither...) prestando atenção na conjugação do auxiliar para o novo pronome.";
+            
+            let feedbackHTML = '';
+            if (state.feedback) {
+                feedbackHTML = `
+                    <div class="p-3 rounded-lg border-l-4 font-medium ${state.feedback.isCorrect ? 'bg-green-100 border-green-600 text-green-800' : 'bg-red-100 border-red-600 text-red-800'}">
+                        ${state.feedback.message}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="p-6 rounded-xl shadow-lg space-y-4 ${colorScheme.main} border-2">
+                    <h3 class="text-2xl font-bold text-stone-800">${title}</h3>
+                    <p class="text-lg text-stone-600">${subtitle}</p>
+
+                    <!-- Prompt Box -->
+                    <div class="p-4 bg-white rounded-lg shadow-inner">
+                        <p class="text-base font-semibold text-stone-500">Frase Original:</p>
+                        <p class="font-mono text-xl text-stone-900">"${currentChallenge.speaker}"</p>
+                        <p class="text-base font-semibold text-stone-500 mt-2">Sua Concordância com o Pronome:</p>
+                        <p class="font-mono text-2xl font-bold ${colorScheme.text} underline">
+                            ... ${currentChallenge.targetPronoun}.
+                        </p>
+                    </div>
+
+                    <!-- Input and Button -->
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                        <input
+                            type="text"
+                            id="challenge-input-${type}"
+                            value="${state.userInput}"
+                            placeholder="${type === 'positive' ? "Ex: So is she" : "Ex: Neither do they"}"
+                            class="flex-grow p-3 border-2 border-stone-300 rounded-lg focus:border-sky-500 transition font-mono text-lg"
+                            ${state.feedback && state.feedback.isCorrect ? 'disabled' : ''}
+                        />
+                        <button
+                            id="challenge-check-${type}"
+                            class="p-3 font-bold rounded-lg shadow-md transition transform hover:scale-[1.02] ${
+                                state.feedback && state.feedback.isCorrect ? 'bg-green-600 text-white' : `${colorScheme.button} text-white`
+                            }"
+                            ${state.feedback && state.feedback.isCorrect ? 'disabled' : ''}
+                        >
+                            ${state.feedback && state.feedback.isCorrect ? 'Correto!' : 'Verificar'}
+                        </button>
+                    </div>
+
+                    <!-- Feedback -->
+                    ${state.feedback ? feedbackHTML : '<div class="min-h-[50px]"></div>'}
+                    
+                    <!-- Próximo Desafio Button -->
+                    ${(state.feedback && state.feedback.isCorrect) || (state.feedback && !state.feedback.isCorrect && state.userInput) ? `
+                        <button id="challenge-next-${type}" class="w-full py-2 bg-stone-700 text-white font-semibold rounded-lg hover:bg-stone-800 transition mt-4">
+                            Próximo Desafio &rarr;
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+
+            // Attach listeners
+            const inputElement = document.getElementById(`challenge-input-${type}`);
+            if (inputElement) {
+                inputElement.addEventListener('input', (e) => {
+                    if (type === 'positive') positiveChallengeState.userInput = e.target.value;
+                    else negativeChallengeState.userInput = e.target.value;
+                });
+            }
+
+            document.getElementById(`challenge-check-${type}`)?.addEventListener('click', () => handleChallengeCheck(type));
+            document.getElementById(`challenge-next-${type}`)?.addEventListener('click', () => {
+                initChallengeState(type);
+                renderPronounChallenge(type);
+            });
+        };
+
+
+        // === CONTROLE DA APLICAÇÃO ===
+        const tabRenderers = {
+            'learn': renderLearnTab,
+            'also': renderAlsoTab,
+            'as-well-as': renderAsWellAsTab,
+            'too-either': renderTooAndEitherTab,
+            'practice': renderPracticeTab,
+            'problem': renderProblemTab,
+        };
+
+        const switchTab = (newTab) => {
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active', 'border-sky-500', 'text-sky-900');
+                btn.classList.add('border-transparent', 'text-stone-500', 'hover:text-stone-700');
+            });
+            
+            // Add active class to the selected button
+            const activeBtn = document.querySelector(`[data-tab="${newTab}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'border-sky-500', 'text-sky-900');
+                activeBtn.classList.remove('border-transparent', 'text-stone-500', 'hover:text-stone-700');
+            }
+
+            // Update state and render content
+            activeTab = newTab;
+            if (tabRenderers[newTab]) {
+                tabRenderers[newTab]();
+            }
+        };
+
+        const initApp = () => {
+            // Initialize tab navigation listeners
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const newTab = e.target.getAttribute('data-tab');
+                    switchTab(newTab);
+                });
+            });
+
+            // Initialize interactive components' states
+            loadScenario(); // For Practice Tab
+            initBuilderState(); // For Learn Tab (Lego Builder)
+            initChallengeState('positive'); // For Learn Tab (Positive Challenge)
+            initChallengeState('negative'); // For Learn Tab (Negative Challenge)
+
+            // Render default tab
+            switchTab(activeTab);
+        };
+        
+    </script>
+
+</body>
+</html>
